@@ -20,15 +20,15 @@ logger = logging.getLogger(__name__)
 def detect_platform(url: str) -> str:
     """
     Phát hiện nền tảng từ URL
-    
+
     Args:
         url: URL của video
-        
+
     Returns:
         Tên nền tảng: 'twitter', 'telegram', 'youtube', 'generic'
     """
     url_lower = url.lower()
-    
+
     if 'twitter.com' in url_lower or 'x.com' in url_lower:
         return 'twitter'
     elif 't.me' in url_lower or 'telegram' in url_lower:
@@ -48,10 +48,10 @@ def detect_platform(url: str) -> str:
 def sanitize_filename(filename: str) -> str:
     """
     Làm sạch tên file, loại bỏ ký tự không hợp lệ
-    
+
     Args:
         filename: Tên file gốc
-        
+
     Returns:
         Tên file đã được làm sạch
     """
@@ -67,10 +67,10 @@ def sanitize_filename(filename: str) -> str:
 def ensure_dir(directory: str) -> Path:
     """
     Đảm bảo thư mục tồn tại, tạo mới nếu chưa có
-    
+
     Args:
         directory: Đường dẫn thư mục
-        
+
     Returns:
         Path object của thư mục
     """
@@ -82,10 +82,10 @@ def ensure_dir(directory: str) -> Path:
 def format_bytes(bytes_size: int) -> str:
     """
     Format kích thước file sang dạng human-readable
-    
+
     Args:
         bytes_size: Kích thước tính bằng bytes
-        
+
     Returns:
         String dạng "10.5 MB"
     """
@@ -99,17 +99,17 @@ def format_bytes(bytes_size: int) -> str:
 def format_duration(seconds: int) -> str:
     """
     Format thời lượng video
-    
+
     Args:
         seconds: Thời lượng tính bằng giây
-        
+
     Returns:
         String dạng "1:23:45" hoặc "12:34"
     """
     hours = seconds // 3600
     minutes = (seconds % 3600) // 60
     secs = seconds % 60
-    
+
     if hours > 0:
         return f"{hours}:{minutes:02d}:{secs:02d}"
     else:
@@ -119,10 +119,10 @@ def format_duration(seconds: int) -> str:
 def parse_quality_string(quality: str) -> Dict:
     """
     Parse string chất lượng thành dict
-    
+
     Args:
         quality: String như "1080p" hoặc "720p60"
-        
+
     Returns:
         Dict với keys: height, fps
     """
@@ -137,31 +137,31 @@ def parse_quality_string(quality: str) -> Dict:
 def get_output_path(url: str, base_path: str, platform: Optional[str] = None) -> Path:
     """
     Tạo đường dẫn output cho video
-    
+
     Args:
         url: URL của video
         base_path: Thư mục gốc
         platform: Nền tảng (optional, sẽ tự detect nếu None)
-        
+
     Returns:
         Path object cho file output
     """
     if platform is None:
         platform = detect_platform(url)
-    
+
     # Tạo thư mục con theo platform
     platform_dir = ensure_dir(os.path.join(base_path, platform))
-    
+
     return platform_dir
 
 
 def convert_wsl_path_to_windows(wsl_path: str) -> str:
-    """
+    r"""
     Convert WSL path sang Windows path
-    
+
     Args:
         wsl_path: Đường dẫn WSL (VD: /mnt/c/Users/...)
-        
+
     Returns:
         Đường dẫn Windows (VD: C:\Users\...)
     """
@@ -175,17 +175,17 @@ def convert_wsl_path_to_windows(wsl_path: str) -> str:
 
 
 def convert_windows_path_to_wsl(windows_path: str) -> str:
-    """
+    r"""
     Convert Windows path sang WSL path
-    
+
     Args:
         windows_path: Đường dẫn Windows (VD: C:\Users\...)
-        
+
     Returns:
         Đường dẫn WSL (VD: /mnt/c/Users/...)
     """
     if ':' in windows_path:
-        # C:\... -> /mnt/c/... 
+        # C:\... -> /mnt/c/...
         drive = windows_path[0].lower()
         rest = windows_path[3:].replace('\\', '/')
         return f"/mnt/{drive}/{rest}"
@@ -195,10 +195,10 @@ def convert_windows_path_to_wsl(windows_path: str) -> str:
 def is_valid_url(url: str) -> bool:
     """
     Kiểm tra URL có hợp lệ không
-    
+
     Args:
         url: URL cần kiểm tra
-        
+
     Returns:
         True nếu hợp lệ, False nếu không
     """
@@ -212,17 +212,17 @@ def is_valid_url(url: str) -> bool:
 def select_best_format(formats: List[Dict], prefer_quality: str = 'best') -> Dict:
     """
     Chọn format tốt nhất từ danh sách
-    
+
     Args:
         formats: List các format có sẵn
         prefer_quality: 'best', 'worst', hoặc resolution cụ thể như '1080p'
-        
+
     Returns:
         Format được chọn
     """
     if not formats:
         return None
-    
+
     if prefer_quality == 'worst':
         return min(formats, key=lambda f: f.get('height', 0))
     elif prefer_quality == 'best':
@@ -235,12 +235,12 @@ def select_best_format(formats: List[Dict], prefer_quality: str = 'best') -> Dic
 
 class ProgressBar:
     """Class đơn giản để hiển thị progress"""
-    
+
     def __init__(self, total: int, description: str = "Downloading"):
         self.total = total
         self.current = 0
         self.description = description
-    
+
     def update(self, amount: int = 1):
         """Cập nhật progress"""
         self.current += amount
@@ -249,6 +249,6 @@ class ProgressBar:
         filled = int(bar_length * self.current / self.total) if self.total > 0 else 0
         bar = '█' * filled + '-' * (bar_length - filled)
         print(f'\r{self.description}: |{bar}| {percentage:.1f}%', end='', flush=True)
-        
+
         if self.current >= self.total:
             print()  # New line khi hoàn thành

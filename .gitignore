@@ -29,8 +29,10 @@ ENV/
 *.session
 *.session-journal
 cookies.txt
+*.txt:Zone.Identifier
 auth_token.txt
 telegram_session/
+video_downloader.session*
 
 # Downloaded files
 downloads/

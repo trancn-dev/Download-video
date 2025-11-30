@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎥 Video Downloader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .platform-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            background: #667eea;
+            color: white;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .status {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .status.info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            display: block;
+        }
+
+        .status.success {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            display: block;
+        }
+
+        .status.error {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            display: block;
+        }
+
+        .status.warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            display: block;
+        }
+
+        .progress {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .features {
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .feature {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .feature-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .feature h3 {
+            color: white;
+            margin-bottom: 5px;
+        }
+
+        .feature p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9em;
+        }
+
+        .download-btn {
+            display: none;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎥 Video Downloader</h1>
+            <p>Tải video từ Twitter/X, Telegram, YouTube và 1000+ sites khác</p>
+        </div>
+
+        <div class="card">
+            <form id="downloadForm">
+                <div class="input-group">
+                    <label for="videoUrl">URL Video</label>
+                    <input
+                        type="text"
+                        id="videoUrl"
+                        placeholder="Paste video URL here..."
+                        required
+                    >
+                    <div id="platformBadge"></div>
+                </div>
+
+                <div class="input-group">
+                    <label for="quality">Chất lượng</label>
+                    <select id="quality">
+                        <option value="best">Best (Tốt nhất)</option>
+                        <option value="high">High (1080p)</option>
+                        <option value="medium">Medium (720p)</option>
+                        <option value="low">Low (480p)</option>
+                    </select>
+                    <button type="button" class="btn" id="listFormatsBtn" style="margin-top: 10px; background: #6c757d; display: none;">
+                        📋 Xem Tất Cả Chất Lượng
+                    </button>
+                </div>
+
+                <button type="submit" class="btn" id="downloadBtn">
+                    ⬇️ Download Video
+                </button>
+            </form>
+
+            <div class="progress" id="progress">
+                <div class="progress-bar" id="progressBar">0%</div>
+            </div>
+
+            <div class="status" id="status"></div>
+
+            <button class="btn download-btn" id="fileDownloadBtn">
+                📥 Tải File Xuống
+            </button>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">🚀</div>
+                <h3>Nhanh Chóng</h3>
+                <p>Tải với tốc độ tối đa</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🎯</div>
+                <h3>Đa Nền Tảng</h3>
+                <p>Hỗ trợ 1000+ websites</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔒</div>
+                <h3>An Toàn</h3>
+                <p>Không lưu trữ dữ liệu</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📱</div>
+                <h3>Responsive</h3>
+                <p>Hoạt động trên mọi thiết bị</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('downloadForm');
+        const videoUrl = document.getElementById('videoUrl');
+        const platformBadge = document.getElementById('platformBadge');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const status = document.getElementById('status');
+        const progress = document.getElementById('progress');
+        const progressBar = document.getElementById('progressBar');
+        const fileDownloadBtn = document.getElementById('fileDownloadBtn');
+        const listFormatsBtn = document.getElementById('listFormatsBtn');
+        let currentDownloadId = null;
+
+        // Detect platform khi nhập URL
+        videoUrl.addEventListener('blur', async () => {
+            const url = videoUrl.value.trim();
+            if (!url) return;
+
+            try {
+                const response = await fetch('/api/detect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+                if (data.platform) {
+                    platformBadge.innerHTML = `<span class="platform-badge">📍 ${data.platform.toUpperCase()}</span>`;
+                    listFormatsBtn.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error detecting platform:', error);
+            }
+        });
+
+        // List formats button
+        listFormatsBtn.addEventListener('click', async () => {
+            const url = videoUrl.value.trim();
+            if (!url) {
+                showStatus('Vui lòng nhập URL!', 'error');
+                return;
+            }
+
+            listFormatsBtn.disabled = true;
+            listFormatsBtn.textContent = '⏳ Đang lấy thông tin...';
+
+            try {
+                const response = await fetch('/api/formats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.formats) {
+                    let formatsList = '<strong>📋 Các chất lượng có sẵn:</strong><br><br>';
+
+                    // Filter và sort video formats
+                    const videoFormats = data.formats
+                        .filter(f => f.height > 0)
+                        .sort((a, b) => b.height - a.height);
+
+                    if (videoFormats.length > 0) {
+                        formatsList += '<table style="width: 100%; text-align: left; border-collapse: collapse;">';
+                        formatsList += '<tr><th>Quality</th><th>FPS</th><th>Format</th></tr>';
+
+                        videoFormats.slice(0, 10).forEach(fmt => {
+                            formatsList += `<tr>
+                                <td><strong>${fmt.height}p</strong></td>
+                                <td>${fmt.fps || 30} fps</td>
+                                <td>${fmt.ext || 'mp4'}</td>
+                            </tr>`;
+                        });
+
+                        formatsList += '</table>';
+
+                        if (videoFormats.length > 10) {
+                            formatsList += `<br><small>...và ${videoFormats.length - 10} chất lượng khác</small>`;
+                        }
+                    } else {
+                        formatsList += 'Không tìm thấy video formats!';
+                    }
+
+                    showStatus(formatsList, 'info');
+                } else {
+                    showStatus('Không thể lấy thông tin formats!', 'error');
+                }
+            } catch (error) {
+                showStatus(`Lỗi: ${error.message}`, 'error');
+            } finally {
+                listFormatsBtn.disabled = false;
+                listFormatsBtn.textContent = '📋 Xem Tất Cả Chất Lượng';
+            }
+        });
+
+        // Submit form
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const url = videoUrl.value.trim();
+            const quality = document.getElementById('quality').value;
+
+            if (!url) {
+                showStatus('Vui lòng nhập URL!', 'error');
+                return;
+            }
+
+            // Reset UI
+            downloadBtn.disabled = true;
+            downloadBtn.textContent = '⏳ Đang xử lý...';
+            fileDownloadBtn.style.display = 'none';
+            showStatus('Đang bắt đầu tải...', 'info');
+            progress.style.display = 'block';
+            progressBar.style.width = '10%';
+            progressBar.textContent = '10%';
+
+            try {
+                // Start download
+                const response = await fetch('/api/download', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url, quality })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentDownloadId = data.download_id;
+                    checkStatus(data.download_id);
+                } else {
+                    showStatus(`Lỗi: ${data.error}`, 'error');
+                    resetUI();
+                }
+            } catch (error) {
+                showStatus(`Lỗi: ${error.message}`, 'error');
+                resetUI();
+            }
+        });
+
+        // Check download status
+        async function checkStatus(downloadId) {
+            try {
+                const response = await fetch(`/api/status/${downloadId}`);
+                const data = await response.json();
+
+                if (data.status === 'downloading') {
+                    progressBar.style.width = '50%';
+                    progressBar.textContent = '50%';
+                    showStatus('⬇️ Đang tải video...', 'info');
+                    setTimeout(() => checkStatus(downloadId), 1000);
+                } else if (data.status === 'completed') {
+                    progressBar.style.width = '100%';
+                    progressBar.textContent = '100%';
+                    showStatus(`✅ Tải thành công! File: ${data.filename}<br>Size: ${data.filesize}`, 'success');
+                    fileDownloadBtn.style.display = 'block';
+                    resetUI();
+                } else if (data.status === 'failed') {
+                    showStatus(`❌ Lỗi: ${data.error}`, 'error');
+                    resetUI();
+                } else {
+                    setTimeout(() => checkStatus(downloadId), 1000);
+                }
+            } catch (error) {
+                showStatus(`❌ Lỗi: ${error.message}`, 'error');
+                resetUI();
+            }
+        }
+
+        // File download button
+        fileDownloadBtn.addEventListener('click', () => {
+            if (currentDownloadId) {
+                window.location.href = `/api/download/${currentDownloadId}/file`;
+            }
+        });
+
+        function showStatus(message, type) {
+            status.innerHTML = message;
+            status.className = `status ${type}`;
+        }
+
+        function resetUI() {
+            downloadBtn.disabled = false;
+            downloadBtn.textContent = '⬇️ Download Video';
+        }
+    </script>
+</body>
+</html>
